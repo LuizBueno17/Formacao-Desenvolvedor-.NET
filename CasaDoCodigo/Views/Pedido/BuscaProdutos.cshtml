@@ -1,0 +1,104 @@
+﻿@{
+    //Funcionalidade #2.1 - A pasta \Views\Pedido do projeto tem uma nova View para a busca de produtos?
+    // Funcionalidade #2.3 - A view de busca de produtos segue o layout especificado pela web designer da equipe?
+    ViewData["Title"] = "Busca de Produtos";
+}
+<!-- Funcionalidade #3.6 - A view de busca de produtos utiliza essa ViewModel como modelo? -->
+@model BuscaViewModel
+<!-- Funcionalidade #3.7 - A view de busca de produtos possui um formulário de busca de produtos? -->
+<!-- Funcionalidade #3.8 - Esse formulário foi criado com FormTagHelper? -->
+<!-- Funcionalidade #3.10 - Esse formulário submete os dados para a action PedidoController.BuscaProdutos? -->
+<form asp-action="BuscaProdutos" method="post">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-4">
+                <h2>Buscar produtos</h2>
+                <div id="custom-search-input">
+                    <div class="input-group col-md-12">
+                        <!-- Funcionalidade #3.9 - O campo de entrada de dados de pesquisa de produtos está fazendo binding para o campo Pesquisa do ViewModel? -->
+                        <input type="text" name="pesquisa" class="form-control input-lg" placeholder="categoria ou produto" asp-for="Pesquisa">
+                        <span class="input-group-btn">
+                            <button class="btn btn-info btn-lg" type="submit">
+                                <i class="glyphicon glyphicon-search"></i>
+                            </button>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+@{
+    // Funcionalidade #2.4 - A view de busca de produtos está exibindo os produtos agrupados por categoria?
+    // Funcionalidade #2.6 - Cada categoria da página de busca de produtos possui um carrossel de produtos independente?
+    if (Model.Categorias.Count() < 1)
+    {
+        <h3>Nenhum produto encontrado!</h3>
+    }
+    else
+    {
+        foreach (var categoria in Model.Categorias)
+        {
+            <h3>@categoria.Nome</h3>
+
+            <div id="my-carousel-@categoria.Id" class="carousel slide" data-ride="carousel">
+                <!-- Wrapper for slides -->
+                <div class="carousel-inner" role="listbox">
+                    @{
+                        const int TAMANHO_PAGINA = 4;
+
+                        int paginas = (int)Math.Ceiling((double)Model.Produtos.Where(p => p.Categoria == categoria).Count() / TAMANHO_PAGINA);
+                    }
+
+                    @{ // Funcionalidade #2.5 - A view de busca de produtos possui dois loops, um para obter as categorias, e o segundo para obter os produtos da categoria?
+                        for (int pagina = 0; pagina < paginas; pagina++)
+                        {
+
+                            <div class="item @(pagina == 0 ? "active" : "")">
+                                <div class="row">
+                                    @{
+                                        var produtosDaPagina = Model.Produtos.Where(p => p.Categoria == categoria).Skip(pagina * TAMANHO_PAGINA).Take(TAMANHO_PAGINA);
+                                    }
+                                    @foreach (var produto in produtosDaPagina)
+                                    {
+
+                                        <div class="col-md-3 col-sm-3 col-lg-3">
+                                            <div class="panel panel-default">
+                                                <div class="panel-body">
+                                                    <img class="img-produto-carrossel" src="/images/produtos/large_@(produto.Codigo).jpg" />
+                                                </div>
+                                                <div class="panel-footer produto-footer">
+                                                    <div class="produto-nome">@produto.Nome</div>
+                                                    <div><h4><strong>R$ @produto.Preco</strong></h4></div>
+                                                    <!-- Funcionalidade #2.8 - Ao clicar no botão "Adicionar" do produto do carrossel, esse mesmo produto é adicionado ao carrinho de compras? -->
+                                                    <div class="text-center">
+                                                        <a asp-action="carrinho"
+                                                           asp-route-codigo="@produto.Codigo"
+                                                           class="btn btn-success">Adicionar</a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+
+                        }
+                    }
+                </div>
+                <!-- Controls
+                Funcionalidade #2.7 - Os botões "antes" e "depois" de cada carrossel permite visualizar os produtos da categoria, sem afetar os outros carrosséis?-->
+                <a class="left carousel-control" href="#my-carousel-@categoria.Id" role="button" data-slide="prev">
+                    <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
+                    <span class="sr-only">Previous</span>
+                </a>
+                <a class="right carousel-control" href="#my-carousel-@categoria.Id" role="button" data-slide="next">
+                    <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
+                    <span class="sr-only">Next</span>
+                </a>
+            </div>
+        }
+
+    }
+}
